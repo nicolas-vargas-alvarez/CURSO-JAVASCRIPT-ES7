@@ -3,6 +3,7 @@
 
 console.log("=== EJEMPLOS DE MAP ===");
 
+
 const numeros = [1, 2, 3, 4, 5];
 
 const doble = numeros.map(n => n * 2);
