@@ -1,111 +1,160 @@
 "use strict";
 
-/*
-CONVERSOR DE UNIDADES (TEMPERATURA / LONGITUD)
-Node.js - Solo consola
-Sin librerías externas
-*/
+const readline = require("readline");
 
-// ======================
-// VALIDACIONES
+// Crear interfaz
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
 
+// ===============================
+// VALIDAR NÚMERO
+// ===============================
+function validarNumero(valor) {
 
-// Valida que el valor sea un número finito
-function validarNumero(value) {
-    const num = Number(value);
-    if (!Number.isFinite(num)) {
-        throw new Error("Error: valor inválido");
+    if (valor === null || valor === undefined) {
+        return "Debe ingresar un valor";
     }
-    return num;
+
+    if (valor.trim() === "") {
+        return "El valor no puede estar vacío";
+    }
+
+    const numero = Number(valor);
+
+    if (!Number.isFinite(numero)) {
+        return "El valor debe ser un número válido";
+    }
+
+    return numero;
 }
 
-// Unidades soportadas por categoría
-const temperatura = ["c", "f", "k"];
-const longitud = ["m", "km", "cm"];
+// ===============================
+// CONVERTIR TEMPERATURA
+// ===============================
+function convertirTemperatura(valor, desde, hacia) {
 
-// Determina la categoría de una unidad
-function categoriaUnidad(unidad) {
-    if (temperatura.includes(unidad)) return "temperatura";
-    if (longitud.includes(unidad)) return "longitud";
-    throw new Error("Error: unidad no soportada");
+    if (desde === hacia) return valor;
+
+    if (desde === "c" && hacia === "f")
+        return valor * 9 / 5 + 32;
+
+    if (desde === "f" && hacia === "c")
+        return (valor - 32) * 5 / 9;
+
+    if (desde === "c" && hacia === "k")
+        return valor + 273.15;
+
+    if (desde === "k" && hacia === "c")
+        return valor - 273.15;
+
+    if (desde === "f" && hacia === "k")
+        return (valor - 32) * 5 / 9 + 273.15;
+
+    if (desde === "k" && hacia === "f")
+        return (valor - 273.15) * 9 / 5 + 32;
+
+    return null;
 }
 
+// ===============================
+// CONVERTIR LONGITUD
+// ===============================
+function convertirLongitud(valor, desde, hacia) {
 
-// CONVERSIONES
+    let metros;
 
-function convertirTemperatura(value, from, to) {
-    if (from === to) return value;
+    if (desde === "m") metros = valor;
+    else if (desde === "km") metros = valor * 1000;
+    else if (desde === "cm") metros = valor / 100;
+    else return null;
 
-    if (from === "c" && to === "f") return value * 9/5 + 32;
-    if (from === "f" && to === "c") return (value - 32) * 5/9;
-    if (from === "c" && to === "k") return value + 273.15;
-    if (from === "k" && to === "c") return value - 273.15;
+    if (hacia === "m") return metros;
+    if (hacia === "km") return metros / 1000;
+    if (hacia === "cm") return metros * 100;
 
-    throw new Error("Error: conversión no soportada");
+    return null;
 }
 
-function convertirLongitud(value, from, to) {
-    if (from === to) return value;
-
-    if (from === "m" && to === "km") return value / 1000;
-    if (from === "km" && to === "m") return value * 1000;
-    if (from === "cm" && to === "m") return value / 100;
-
-    throw new Error("Error: conversión no soportada");
-}
-
-
+// ===============================
 // FUNCIÓN PRINCIPAL
+// ===============================
+function convertir(valor, from, to) {
 
+    const numeroValidado = validarNumero(valor);
 
-function convertir({ value, from, to }) {
-    const numero = validarNumero(value);
-    from = from.toLowerCase();
-    to = to.toLowerCase();
-
-    const categoriaFrom = categoriaUnidad(from);
-    const categoriaTo = categoriaUnidad(to);
-
-    if (categoriaFrom !== categoriaTo) {
-        throw new Error("Error: categorías incompatibles");
+    if (typeof numeroValidado === "string") {
+        return numeroValidado; // Devuelve mensaje de error
     }
+
+    const numero = numeroValidado;
+
+    if (!from || !to) {
+        return "Debe indicar unidades";
+    }
+
+    from = from.toLowerCase().trim();
+    to = to.toLowerCase().trim();
+
+    const temp = ["c", "f", "k"];
+    const long = ["m", "km", "cm"];
 
     let resultado;
 
-    if (categoriaFrom === "temperatura") {
+    if (temp.includes(from) && temp.includes(to)) {
         resultado = convertirTemperatura(numero, from, to);
-    } else {
+    }
+    else if (long.includes(from) && long.includes(to)) {
         resultado = convertirLongitud(numero, from, to);
+    }
+    else {
+        return "Unidades incompatibles o no soportadas";
+    }
+
+    if (resultado === null) {
+        return "Conversión no válida";
     }
 
     return resultado.toFixed(2);
 }
 
-// ======================
-// PRUEBAS MANUALES
-// ======================
+// ===============================
+// INICIAR PROGRAMA
+// ===============================
+function iniciar() {
 
-const pruebas = [
-    { value: 100, from: "c", to: "f" },
-    { value: 32, from: "f", to: "c" },
-    { value: 0, from: "c", to: "f" },
-    { value: -40, from: "c", to: "f" },
-    { value: 1500, from: "m", to: "km" },
-    { value: 1.2, from: "km", to: "m" },
-    { value: "abc", from: "c", to: "f" },
-    { value: 10, from: "kg", to: "g" },
-    { value: 10, from: "c", to: "m" },
-    { value: " ", from: "m", to: "km" },
-];
+    console.log("\n=== CONVERSOR DE UNIDADES ===");
+    console.log("Temperatura: c, f, k");
+    console.log("Longitud: m, km, cm");
+    console.log("Escriba 'salir' para terminar\n");
 
-// EJECUCIÓN CONTROLADA
+    rl.question("Ingrese el valor: ", function(valor) {
 
+        if (valor.toLowerCase() === "salir") {
+            console.log("Programa finalizado.");
+            rl.close();
+            return;
+        }
 
-for (const prueba of pruebas) {
-    try {
-        const resultado = convertir(prueba);
-        console.log(`${prueba.value} ${prueba.from} → ${resultado} ${prueba.to}`);
-    } catch (error) {
-        console.log(`${prueba.value} ${prueba.from} → ${error.message}`);
-    }
+        rl.question("Unidad origen: ", function(from) {
+
+            rl.question("Unidad destino: ", function(to) {
+
+                const resultado = convertir(valor, from, to);
+
+                if (isNaN(resultado)) {
+                    console.log("Error:", resultado);
+                } else {
+                    console.log("Resultado:", resultado, to);
+                }
+
+                iniciar(); // repetir
+            });
+
+        });
+
+    });
 }
+
+iniciar();
